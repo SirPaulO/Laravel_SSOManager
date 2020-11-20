@@ -1,6 +1,6 @@
 {
-    "name": "sirpaul/ssomanager",
-    "description": "External user provider manager",
+    "name": "sirpaul/laravel_ssomanager",
+    "description": "External user provider manager for Laravel",
     "license": "MIT",
     "authors": [
         {
