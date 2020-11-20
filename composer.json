@@ -13,5 +13,18 @@
         "php": "^7.1.3",
         "guzzlehttp/guzzle": "^6.3",
         "web-token/jwt-framework": "^2.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "SirPaul\\SSOManager\\": "/src"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "SirPaul\\SSOManager\\SSOManagerServiceProvider"
+            ]
+        }
     }
+
 }
