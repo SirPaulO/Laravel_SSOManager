@@ -1,0 +1,17 @@
+{
+    "name": "sirpaul/ssomanager",
+    "description": "External user provider manager",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "SirPaul",
+            "email": "1976794+SirPaulO@users.noreply.github.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": "^7.1.3",
+        "guzzlehttp/guzzle": "^6.3",
+        "web-token/jwt-framework": "^2.1"
+    }
+}
