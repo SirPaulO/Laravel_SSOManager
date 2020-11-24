@@ -3,6 +3,7 @@
 namespace SirPaul\SSOManager\Traits;
 
 use GuzzleHttp\Client;
+use http\Exception\InvalidArgumentException;
 use \Illuminate\Auth\AuthenticationException;
 
 trait AuthAPITrait {
@@ -43,18 +44,18 @@ trait AuthAPITrait {
         'Accept'        => 'application/json',
         ]
       ]);
+
+      $token = $this->getTokenFromRequest($response);
+
+      if(!$token)
+        return null;
+
+      $user = $this->getUserFromJWT($token);
+
+      return $user;
     } catch (\Throwable $error) {
       return $this->responseErrorHandler($error);
     }
-
-    $token = $this->getTokenFromRequest($response);
-
-    if(!$token)
-      return null;
-
-    $user = $this->getUserFromJWT($token);
-
-    return $user;
   }
 
   private function getTokenFromRequest($response) {
@@ -64,17 +65,18 @@ trait AuthAPITrait {
       $responseBody = json_decode($response->getBody()->getContents());
       return $responseBody->token;
     } catch (\Throwable $th) {
-      return null;
+      throw new InvalidArgumentException($th->getMessage());
     }
   }
 
   private function responseErrorHandler(\Throwable $error) {
     try {
       $errorMessage = json_decode($error->getResponse()->getBody()->getContents());
-      throw new AuthenticationException($errorMessage);
+      $errorMessage = $errorMessage->error;
     } catch (\Throwable $th) {
       throw new AuthenticationException($error->getMessage());
     }
+    throw new AuthenticationException($errorMessage);
   }
 
 }

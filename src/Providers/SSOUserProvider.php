@@ -61,7 +61,14 @@ class SSOUserProvider implements UserProvider {
    * @return \Illuminate\Contracts\Auth\Authenticatable|null
    */
   public function retrieveByCredentials(array $credentials) {
-    $user = $this->ApiLogin($credentials);
+    try {
+      $user = $this->ApiLogin($credentials);
+    } catch (\Throwable $e) {
+      if(config('SSOManager.SSO_DEBUG'))
+        dd($e);
+      else
+        return null;
+    }
 
     if(!$user)
       return null;
@@ -71,6 +78,12 @@ class SSOUserProvider implements UserProvider {
     return $user;
   }
 
+  /**
+   * @param Authenticatable $user
+   * @param array $credentials
+   *
+   * @return bool
+   */
   public function validateCredentials(Authenticatable $user, array $credentials) {
     return \Hash::check($credentials['password'], $user->getAuthPassword());
   }

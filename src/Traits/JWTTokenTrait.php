@@ -3,7 +3,6 @@
 namespace SirPaul\SSOManager\Traits;
 
 use Illuminate\Auth\GenericUser;
-
 use Jose\Component\Core\JWK;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Signature\Algorithm\HS256;
@@ -12,14 +11,16 @@ use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Component\Checker\ClaimCheckerManager;
 use Jose\Component\Checker;
 
-
 trait JWTTokenTrait {
 
   /**
    * Get the generic user from a JWT
    *
-   * @param  mixed  $user
-   * @return \Illuminate\Auth\GenericUser|null
+   * @param $token
+   *
+   * @return GenericUser|null
+   * @throws Checker\InvalidClaimException
+   * @throws Checker\MissingMandatoryClaimException
    */
   public function getUserFromJWT($token) {
     if(!$this->checkToken($token) || !$this->verifyToken($token))
@@ -42,8 +43,17 @@ trait JWTTokenTrait {
     return new GenericUser((array) $user);
   }
 
-
-  public function checkToken($token, $claimsToCheck = null) {
+  /**
+   * Check token and claims
+   *
+   * @param $token
+   * @param $claimsToCheck
+   *
+   * @return bool
+   * @throws Checker\InvalidClaimException
+   * @throws Checker\MissingMandatoryClaimException
+   */
+  public function checkToken($token) {
     // The serializer manager. We only use the JWS Compact Serialization Mode.
     $serializer = new CompactSerializer();
 
@@ -55,8 +65,7 @@ trait JWTTokenTrait {
       ]
     );
 
-    if(!$claimsToCheck)
-      $claimsToCheck = ['iat', 'nbf', 'exp', 'iss', 'sub', 'aud'];
+    $claimsToCheck = explode(',', str_replace(' ', '', config('SSOManager.JWT_CLAIMS')));
 
     // We try to load the token.
     $jws = $serializer->unserialize($token);
@@ -65,11 +74,13 @@ trait JWTTokenTrait {
 
     $claimCheckerManager->check($claims, $claimsToCheck);
 
-    if($claims['iss'] != config('SSOManager.JWT_ISS'))
+    if(in_array('iss', $claimsToCheck) && $claims['iss'] != config('SSOManager.JWT_ISS'))
       return false;
 
-    $appID = (int) config('SSOManager.JWT_APP_ID');
-    $isValidApp = is_array($claims['aud']) ? (int) $claims['aud']['id'] == $appID : (int) $claims['aud'] == $appID;
+    if(in_array('aud', $claimsToCheck)) {
+      $appID = (int) config('SSOManager.JWT_APP_ID');
+      $isValidApp = is_array($claims['aud']) ? (int) $claims['aud']['id'] == $appID : (int) $claims['aud'] == $appID;
+    }
 
     if(!$isValidApp)
       return false;
@@ -77,7 +88,13 @@ trait JWTTokenTrait {
     return true;
   }
 
-
+  /**
+   * Verify token signature
+   *
+   * @param $token
+   *
+   * @return bool
+   */
   public function verifyToken($token) {
     // The algorithm manager with the HS256 algorithm.
     $algorithmManager = new AlgorithmManager([new HS256()]);
