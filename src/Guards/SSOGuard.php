@@ -13,7 +13,6 @@ use SirPaul\SSOManager\Providers\SSOUserProvider;
 class SSOGuard implements Guard {
 
   use \SirPaul\SSOManager\Traits\JWTTokenTrait;
-  /*use \App\Http\Traits\RedisTrait;*/
 
   /**
    * The name of the Guard. Typically "session".
@@ -75,7 +74,7 @@ class SSOGuard implements Guard {
    */
   public function user() {
     if ($this->loggedOut) {
-      return;
+      return null;
     }
 
     // If we've already retrieved the user for the current request we can just
@@ -85,9 +84,16 @@ class SSOGuard implements Guard {
       return $this->user;
     }
 
-    $this->user = unserialize($this->session->get($this->getName()));
-
-    if(!$this->user) return;
+    try {
+      $this->user = unserialize($this->session->get($this->getName()));
+      if (!$this->user || !$this->checkToken($this->user->token) || !$this->verifyToken($this->user->token)) {
+        $this->logout();
+        return null;
+      }
+    } catch (\Throwable $th) {
+      $this->logout();
+      return null;
+    }
 
     return $this->user;
   }
@@ -98,18 +104,7 @@ class SSOGuard implements Guard {
    * @return bool
    */
   public function check() {
-    // TO-DO: Verificar que el token siga VIVO: Renovar, o desloguear.
-    //dd('App\Services\Auth\SSOGuard:check');
-    if ($this->loggedOut) {
-      return false;
-    }
-
-    if($this->user() === null || !$this->checkToken($this->user()->token) || !$this->verifyToken($this->user()->token)) {
-      $this->logout();
-      return false;
-    }
-
-    return true;
+    return $this->user() != null;
   }
 
   /**
@@ -135,8 +130,8 @@ class SSOGuard implements Guard {
     }
 
     return $this->user()
-                  ? $this->user()->getAuthIdentifier()
-                  : null; //$this->session->get($this->getName());
+      ? $this->user()->getAuthIdentifier()
+      : null; //$this->session->get($this->getName());
   }
 
   /**
@@ -207,15 +202,15 @@ class SSOGuard implements Guard {
   }
 
   /**
-     * Get the generic user.
-     *
-     * @param  mixed  $user
-     * @return \Illuminate\Auth\GenericUser|null
-     */
-    protected function getGenericUser($user) {
-        if (!is_null($user)) {
-            return new GenericUser((array) $user);
-        }
+   * Get the generic user.
+   *
+   * @param  mixed  $user
+   * @return \Illuminate\Auth\GenericUser|null
+   */
+  protected function getGenericUser($user) {
+    if (!is_null($user)) {
+      return new GenericUser((array) $user);
+    }
   }
 
   /**
