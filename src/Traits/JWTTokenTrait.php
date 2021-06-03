@@ -94,6 +94,26 @@ trait JWTTokenTrait {
   }
 
   /**
+   * Verifca si el token esta a menos de N minutos de expirar
+   * 
+   * @return \Illuminate\Contracts\Auth\Authenticatable
+   * 
+   * @return bool
+   */
+  public function checkTokenAboutExpire($token){
+    // The serializer manager. We only use the JWS Compact Serialization Mode.
+    $serializer = new CompactSerializer();
+
+     // We try to load the token.
+     $jws = $serializer->unserialize($token);
+     $claims = json_decode($jws->getPayload(), true);
+     $oCarbon = new \Carbon\Carbon();
+     $to_expire = $oCarbon->now()->addSeconds(config('SSOManager.JWT_TIME_TO_EXPIRE'));
+     $token_exp = $oCarbon->parse($claims['exp']);
+     return $to_expire->greaterThan($token_exp);
+  }
+
+  /**
    * Verify token signature
    *
    * @param $token
