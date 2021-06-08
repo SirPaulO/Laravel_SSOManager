@@ -40,7 +40,7 @@ trait JWTTokenTrait {
       $user->$claimKey = $claimValue;
     }
 
-    $user->aud = stdClass();
+    $user->aud = new \stdClass();
     foreach ($claims['aud'] as $claimKey => $claimValue) {
       $user->aud->$claimKey = $claimValue;
     }
