@@ -89,11 +89,12 @@ class SSOUserProvider implements UserProvider {
   }
 
   public function autoUpdateToken(Authenticatable $user) {
-    if($this->checkToken($user->token)){//Expired return null
+    // Expired then return null
+    if($this->checkToken($user->token)) {
       return null;
     }
 
-    if(!$this->checkTokenAboutExpire($user->token)) {//Last time
+    if(!$this->checkTokenAboutExpire($user->token)) {
       return $user;
     }
 

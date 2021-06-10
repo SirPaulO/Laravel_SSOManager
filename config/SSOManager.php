@@ -7,5 +7,5 @@ return [
   'JWS_KEY' => env('JWS_KEY', 'JWT Issuer'),
   'JWT_CLAIMS' => env('JWT_CLAIMS', 'iat,nbf,exp,sub,iss,aud'),
   'SSO_DEBUG' => false,
-  'JWT_TIME_TO_EXPIRE' => 61*60 //Seconds 
+  'JWT_TIME_TO_EXPIRE' => 60*60, // Seconds
 ];

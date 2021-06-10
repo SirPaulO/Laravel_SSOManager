@@ -94,7 +94,7 @@ trait JWTTokenTrait {
   }
 
   /**
-   * Verifca si el token esta a menos de N minutos de expirar
+   * Verify if the token is within N seconds from expire
    * 
    * @return \Illuminate\Contracts\Auth\Authenticatable
    * 
