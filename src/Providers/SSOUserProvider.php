@@ -89,9 +89,12 @@ class SSOUserProvider implements UserProvider {
   }
 
   public function autoUpdateToken(Authenticatable $user) {
-    // If there is no need to update the token (more than 30min to expire) return null
-    if($this->checkToken($user->token) && $this->checkToken($user->token, null)) {
+    if($this->checkToken($user->token)){//Expired return null
       return null;
+    }
+
+    if(!$this->checkTokenAboutExpire($user->token)) {//Last time
+      return $user;
     }
 
     $pwd = $user->password;
